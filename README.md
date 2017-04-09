@@ -1,7 +1,7 @@
 # redditbot
 A reddit bot to get a digest of subreddits of your choice
 
-Just PM your email and subreddits with ';' as delimiter
+Just PM your email and subreddits with ';' as delimiter to [badolaay](https://www.reddit.com/user/badolaay/)
 
 For example: abc@mail.com;programming;jokes
 
