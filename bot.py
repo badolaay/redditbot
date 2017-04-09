@@ -45,7 +45,6 @@ for message in messages:
             text += printComments(reddit.subreddit(m[i]))
         text += "<br>Explore some random subreddits:<br>"
         text += printComments(reddit.subreddit(config.get('reddit', 'randomSubreddit')))
-        # send email
         requests.post(
             config.get('mail', 'url'),
             auth=("api", config.get('mail', 'key')),
