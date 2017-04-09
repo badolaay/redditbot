@@ -33,7 +33,7 @@ def printComments(subreddit):
     return mailBody
 
 
-reddit = praw.Reddit('testbot')
+reddit = praw.Reddit('redditDigesttbot')
 
 messages = reddit.inbox.all()
 for message in messages:
