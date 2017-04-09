@@ -7,38 +7,30 @@ config.read('config.ini')
 
 
 def printComments(subreddit):
-    text = "Heres some posts from <a href=""reddit.com/r/" + subreddit.display_name + """>""" + subreddit.display_name
-    text += "</a><br><br>"
+    mailBody = "<br>Heres some posts from <a href=""reddit.com/r/" + subreddit.display_name + """>""" + subreddit.display_name
+    mailBody += "</a><br><br>"
     i = 0
     try:
-        for submission in subreddit.hot(limit=3):
-            if (not submission.stickied and i < 5):
+        for submission in subreddit.hot(limit=int(config.get('reddit', 'postsToFetch'))):
+            if not submission.stickied and i < int(config.get('reddit', 'maxPostsToEmail')):
                 i += 1
-                text += "<strong>Title:</strong> " + submission.title + "<br>"
-                if (submission.selftext != ''):
-                    text += "<strong>Text:</strong> " + submission.selftext + "<br>"
-                text += "<strong>Score:</strong> " + str(submission.score) + "<br>"
+                mailBody += "<strong>Title:</strong> " + submission.title + "<br>"
+                if submission.selftext != '':
+                    mailBody += "<strong>Text:</strong> " + submission.selftext + "<br>"
+                mailBody += "<strong>Score:</strong> " + str(submission.score) + "<br>"
                 j = 0
-                text += "<strong>Comments:</strong><br>"
+                mailBody += "<strong>Comments:</strong><br>"
                 comments = submission.comments._comments
-                while (j < 5 and len(comments) > j):
-                    text += comments[j].body + "<br><br>"
+                if len(comments) == 0:
+                    mailBody += "<i>This post has no comments</i><br><br>"
+                while j < int(config.get('reddit', 'commentsToEmail')) and len(comments) > j:
+                    mailBody += comments[j].body + "<br><br>"
                     j += 1
 
-                text += "---------------------------------<br>"
+                mailBody += "---------------------------------<br>"
     except:
         pass
-    return text
-
-
-def send_simple_message(to, text):
-    return requests.post(
-        config.get('mail', 'url'),
-        auth=("api", config.get('mail', 'key')),
-        data={"from": config.get('mail', 'from'),
-              "to": to,
-              "subject": "Hello",
-              "html": text})
+    return mailBody
 
 
 reddit = praw.Reddit('testbot')
@@ -50,12 +42,14 @@ for message in messages:
         email = m[0]
         text = ''
         for i in range(1, len(m)):
-            subreddit = reddit.subreddit(m[i])
-            text += printComments(subreddit)
+            text += printComments(reddit.subreddit(m[i]))
         text += "<br>Explore some random subreddits:<br>"
-        text += printComments(reddit.subreddit("random"))
-        send_simple_message(email, text)
-
-# subreddit = reddit.subreddit("random")
-# subreddit = reddit.subreddit("random")
-# subreddit = reddit.subreddit("random")
+        text += printComments(reddit.subreddit(config.get('reddit', 'randomSubreddit')))
+        # send email
+        requests.post(
+            config.get('mail', 'url'),
+            auth=("api", config.get('mail', 'key')),
+            data={"from": config.get('mail', 'from'),
+                  "to": email,
+                  "subject": "Digest",
+                  "html": text})
